@@ -48,14 +48,7 @@ const Appointments = ({
       </main>
     );
   return (
-    <main className="container">
-      <Link
-        to="/appointments/new"
-        className="btn btn-primary"
-        style={{ margin: "20px 0px 20px 0px" }}
-      >
-        New Appointment
-      </Link>
+    <React.Fragment>
       <h4>Showing {appointmentsCount} appointments in the database</h4>
       <Table
         onSort={onSort}
@@ -63,7 +56,7 @@ const Appointments = ({
         data={appointments}
         sortColumn={sortColumn}
       />
-    </main>
+    </React.Fragment>
   );
 };
 

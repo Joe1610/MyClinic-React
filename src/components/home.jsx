@@ -6,6 +6,8 @@ import { paginate } from "../utils/paginate";
 import { getAppointments } from "../services/fakeAppointments";
 import ListGroup from "../common/listGroup";
 import _ from "lodash";
+import SearchBox from "../common/searchBox";
+import { Link } from "react-router-dom";
 class Home extends Component {
   state = {
     appointments: [],
@@ -14,6 +16,7 @@ class Home extends Component {
     currentPage: 1,
     pageSize: 4,
     sortColumn: { path: "id", order: "asc" },
+    searchText: "",
   };
 
   componentDidMount = () => {
@@ -43,7 +46,19 @@ class Home extends Component {
   };
 
   handleDoctorChange = (doctorID) => {
-    this.setState({ currentDoctorID: doctorID, currentPage: 1 });
+    this.setState({
+      currentDoctorID: doctorID,
+      currentPage: 1,
+      searchText: "",
+    });
+  };
+
+  handleSearch = (text) => {
+    this.setState({
+      currentDoctorID: 0,
+      currentPage: 1,
+      searchText: text,
+    });
   };
 
   handleSort = (sortColumn) => {
@@ -51,28 +66,38 @@ class Home extends Component {
   };
 
   getPageData = () => {
-    const filtered = this.state.currentDoctorID
-      ? this.state.appointments.filter(
-          (e) => e.doctor.id === this.state.currentDoctorID
-        )
-      : this.state.appointments;
-    const sorted = _.orderBy(
-      filtered,
-      [this.state.sortColumn.path],
-      [this.state.sortColumn.order]
-    );
-    const appointments = paginate(
-      sorted,
-      this.state.currentPage,
-      this.state.pageSize
-    );
+    const {
+      appointments: allAppointments,
+      currentDoctorID,
+      sortColumn,
+      searchText,
+      currentPage,
+      pageSize,
+    } = this.state;
+
+    let filtered = allAppointments;
+    if (searchText) {
+      filtered = allAppointments.filter((a) =>
+        a.patient.toLowerCase().startsWith(searchText.toLowerCase())
+      );
+    } else if (currentDoctorID)
+      filtered = allAppointments.filter((e) => e.doctor.id === currentDoctorID);
+
+    const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
+    const appointments = paginate(sorted, currentPage, pageSize);
     return { totalCount: filtered.length, data: appointments };
   };
 
   render() {
     const { totalCount, data: appointments } = this.getPageData();
-    const { doctors, currentDoctorID, sortColumn, currentPage, pageSize } =
-      this.state;
+    const {
+      doctors,
+      currentDoctorID,
+      sortColumn,
+      currentPage,
+      pageSize,
+      searchText,
+    } = this.state;
     return (
       <React.Fragment>
         <div className="row">
@@ -83,7 +108,15 @@ class Home extends Component {
               onDoctorChange={this.handleDoctorChange}
             />
           </div>
-          <div className="col">
+          <div className="col-8">
+            <Link
+              to="/appointments/new"
+              className="btn btn-primary"
+              style={{ margin: "20px 0px 5px 0px" }}
+            >
+              New Appointment
+            </Link>
+            <SearchBox value={searchText} onChange={this.handleSearch} />
             <Appointments
               appointments={appointments}
               appointmentsCount={totalCount}
